@@ -1,0 +1,86 @@
+% ADmonirec.m
+% contec —p ADC ƒ‚ƒjƒ^ƒŠƒ“ƒOEŒv‘ªƒXƒNƒŠƒvƒg
+% Às‚É‚Í DAQ Toolbox ‚ª•K—v
+% Às‚É‚Í AIOcontec_init.m ‚ª•K—v
+% 2016.5.2. Notch ƒtƒBƒ‹ƒ^’Ç‰Á (funcBEF.m g—p) 6
+clear all;
+close all;
+
+%% ‰Šúİ’è
+AIOcontec_init;
+Tsave=input(' ‹L˜^‚Ì‹L˜^ŠÔ [s]F');
+savedat=zeros(Tsave*ActualRate,Nch);
+t=[0:1/ActualRate:Tsave-1/ActualRate]; 
+%% ƒOƒ‰ƒt€”õ
+ss = input('Enter ƒL[‚ğ‰Ÿ‚·‚Æƒ‚ƒjƒ^ƒŠƒ“ƒO‚ªŠJn‚³‚ê‚Ü‚· \n (r ‚ğ‰Ÿ‚·‚Æ‹L˜^ŠJnCq ‚ğ‰Ÿ‚·‚ÆI—¹‚µ‚Ü‚·D)','s'); 
+1hf=figure('position',[650 100 800 600]);
+	set(gcf,'doublebuffer','on'); %Reduce plot flicker
+for i=1:Nch,
+str=['P',num2str(i),'=plot(subplot(',num2str(Nch),',1,',num2str(i),'),dat(:,',num2str(i),'),''b'');'];
+eval(str);
+end 
+%% ƒXƒ^[ƒg
+start(AI);
+recflag=0;
+while AI.SamplesAcquired < AI.SamplesPerTrigger,
+if strcmp(get(hf,'currentcharacter'),'q')
+stop(AI);
+break;	%q ‚ğ‰Ÿ‚µ‚½‚çI—¹
+end
+if strcmp(get(hf,'currentcharacter'),'r')
+recflag=1; %r ‚ğ‰Ÿ‚µ‚½‚çƒtƒ@ƒCƒ‹o—Í
+disp('‹L˜^‚µ‚Ä‚¢‚Ü‚·DD')
+end
+while AI.SamplesAcquired < round(duration*ActualRate)
+end
+samples=round(duration*ActualRate);
+% ƒf[ƒ^‚Ìæ“¾
+dat = peekdata(AI,samples);
+%dat = funcBEF(dat, 49, 51, Fs); %Œğ—¬G‰¹‚ª‘å‚«‚¢‚Ég—p (2016.5.2) 
+% ƒOƒ‰ƒt‚Ì•`‰æ
+for i=1:Nch,
+str=['set(P',num2str(i),',''ydata'',dat(:,',num2str(i),... 	'),''Color'f,[0 0 1])f];
+eval(str);
+str=[fsubplot(f,num2str(Nch),f,1,f,num2str(i),...
+	f),ylabel(ffCh  f,num2str(i),fff,ffFontSizeff,16);ylim([-5 5]);f];
+eval(str);
+end
+xlabel(fSamplesf,fFontSizef,16); 
+drawnow
+if recflag==1,
+stop(AI);
+start(AI);
+samples=round(Tsave*ActualRate);
+savedat=getdata(AI,samples);
+stop(AI);
+%savedat = funcBPF(savedat, 49, 51, Fs); %Œğ—¬G‰¹‚ª‘å‚«‚¢‚Ég—p (2016.5.2)
+% ƒOƒ‰ƒt‚Ì•`‰æ
+for i=1:Nch,
+str=[fset(Pf,num2str(i),f,ffydataff,savedat(:,f,num2str(i),...
+ 
+
+
+f),ffxdataff,t,ffColorff,[1 0 0])f];
+eval(str);
+str=[fsubplot(f,num2str(Nch),f,1,f,num2str(i),...
+f),ylabel(ffCh  f,num2str(i),fff,ffFontSizeff,16);ylim([-5 5]);f];
+eval(str);
+end
+xlabel(fTime [s]f,fFontSizef,16);
+break;
+end
+end
+while strcmp(AI.Running,fOnf)
+end
+delete(AI);
+disp(f ‘ª’è‚ªI—¹‚µ‚Ü‚µ‚½.f); 80
+%% Œ‹‰Ê‚Ìo—Í
+if recflag==1,
+str=[fADmonirec_f,datestr(now,fyyyymmdd_HHMMSSf)];
+csvwrite([str,f.csvf],[tf savedat]);
+disp([f ƒtƒ@ƒCƒ‹ f,str,f.csv ‚ğo—Í‚µ‚Ü‚µ‚½f]);
+saveas(gca,[str,f.figf]);
+saveas(gca,[str,f.pngf]);
+disp([f ƒOƒ‰ƒt f,str,f[.fig/.png] ‚ğo—Í‚µ‚Ü‚µ‚½f]);
+end 90
+  %% end of file
